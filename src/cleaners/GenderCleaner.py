@@ -15,14 +15,10 @@ class GenderCleaner(ColCleaner):
     def _get_cleaner(self) -> callable:
 
         def cleaner(value: str | None):
-            if value is not None and value.strip() == "" and self.empty_to_null:
-                value = None
+            value = self.preprocess(value)
 
             if value is None:
-                if self.nullable:
-                    return None
-                else:
-                    raise ValueError("Value cannot be null")
+                return None
 
             value_clean = value.lower().strip()
             ismale = value_clean in ["male", "m"]

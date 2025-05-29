@@ -65,7 +65,9 @@ class PhoneCleaner(ColCleaner):
         pn_format = self._convert_format(self.fmt)
 
         def _cleaner(value: str | None) -> str | None:
-            if value is None or value.strip() == "":
+            value = self.preprocess(value)
+
+            if value is None:
                 return None
 
             numobj: phonenumbers.PhoneNumber = None

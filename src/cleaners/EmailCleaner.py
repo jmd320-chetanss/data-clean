@@ -23,7 +23,9 @@ class EmailCleaner(ColCleaner):
         """
 
         def _cleaner(value: str | None) -> str | None:
-            if value is None or value.strip() == '':
+            value = self.preprocess(value)
+
+            if value is None:
                 return None
 
             matches = itertools.islice(

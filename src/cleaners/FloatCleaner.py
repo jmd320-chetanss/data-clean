@@ -21,14 +21,10 @@ class FloatCleaner(ColCleaner):
         """
 
         def cleaner(value: str | None):
-            if value is not None and value.strip() == "" and self.empty_to_null:
-                value = None
+            value = self.preprocess(value)
 
             if value is None:
-                if self.nullable:
-                    return None
-                else:
-                    raise ValueError("Value cannot be null")
+                return None
 
             parsed_value = math_utils.parse_float(value)
             if parsed_value is None:

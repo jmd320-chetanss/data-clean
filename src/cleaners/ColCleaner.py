@@ -5,20 +5,26 @@ from pyspark.sql import Column
 import pyspark.sql.functions as spf
 
 
+def col_cleaner_default_preprocessor(value: str | None) -> str | None:
+    """
+    Default preprocessor function to handle None values.
+
+    :param value: The value to preprocess.
+    :return: The preprocessed value.
+    """
+    if value is None:
+        return None
+
+    value = value.strip()
+    if value == "":
+        return None
+
+    return value
+
+
 @dataclass
 class ColCleaner(ABC):
-    # Can the column contain null values
-    nullable: bool = True
-
-    # Every value must be unique
-    unique: bool = False
-
-    # Convert empty values to null
-    empty_to_null: bool = True
-
-    # What to replace null values with
-    # NOTE: this value is then parsed by the logic as they were already there
-    on_null: Optional[str] = None
+    preprocess: callable = col_cleaner_default_preprocessor
 
     # Rename the column
     rename_to: Optional[str] = None

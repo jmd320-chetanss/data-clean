@@ -25,14 +25,10 @@ class StringCleaner(ColCleaner):
             raise ValueError(f"Invalid case '{self.case}'.")
 
         def cleaner(value: str | None):
-            if value is not None and value.strip() == "" and self.empty_to_null:
-                value = None
+            value = self.preprocess(value)
 
             if value is None:
-                if self.nullable:
-                    return None
-                else:
-                    raise ValueError("Value cannot be null")
+                return None
 
             if self.trim:
                 value = value.strip()

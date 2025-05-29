@@ -31,14 +31,10 @@ class DatetimeCleaner(ColCleaner):
             parse_formats = [parse_formats]
 
         def cleaner(value: str | None) -> str | None:
-            if value is not None and value.strip() == "" and self.empty_to_null:
-                value = None
+            value = self.preprocess(value)
 
             if value is None:
-                if self.nullable:
-                    return None
-                else:
-                    raise ValueError("Value cannot be null")
+                return None
 
             try:
                 parsed_value = parser.parse(value)

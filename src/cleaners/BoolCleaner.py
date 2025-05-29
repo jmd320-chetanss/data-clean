@@ -10,8 +10,18 @@ class BoolCleaner(ColCleaner):
     """
     from dataclasses import field
 
-    true_cases: List[str] = field(default_factory=lambda: ["true", "t", "yes", "y", "on", "1"])
-    false_cases: List[str] = field(default_factory=lambda: ["false", "f", "no", "n", "off", "0"])
+    true_cases: List[str] = field(
+        default_factory=lambda: [
+            "true", "t", "yes", "y", "on", "1"
+        ]
+    )
+
+    false_cases: List[str] = field(
+        default_factory=lambda: [
+            "false", "f", "no", "n", "off", "0"
+        ]
+    )
+
     extra_true_cases: List[str] = field(default_factory=list)
     extra_false_cases: List[str] = field(default_factory=list)
     true_value: str = "True"
@@ -29,14 +39,11 @@ class BoolCleaner(ColCleaner):
         false_cases = self.false_cases + self.extra_false_cases
 
         def cleaner(value: str | None) -> str | None:
-            if value is not None and value.strip() == "" and self.empty_to_null:
-                value = None
+
+            value = self.preprocess(value)
 
             if value is None:
-                if self.nullable:
-                    return None
-                else:
-                    raise ValueError("Value cannot be null")
+                return None
 
             value_clean = value.lower().strip()
             istrue = value_clean in true_cases
