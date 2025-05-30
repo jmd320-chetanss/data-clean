@@ -14,11 +14,14 @@ class GenderCleaner(ColCleaner):
 
     def __post_init__(self):
 
-        assert self.fmt in ["malefemale", "mf"], \
-            f"Invalid format '{self.fmt}'. Must be 'malefemale' or 'mf'."
+        assert self.fmt in [
+            "malefemale",
+            "mf",
+        ], f"Invalid format '{self.fmt}'. Must be 'malefemale' or 'mf'."
 
-        assert isinstance(self.lower, bool), \
-            f"Lower must be a boolean, not {type(self.lower)}."
+        assert isinstance(
+            self.lower, bool
+        ), f"Lower must be a boolean, not {type(self.lower)}."
 
     def clean_value(self, value: str | None) -> str | None:
 

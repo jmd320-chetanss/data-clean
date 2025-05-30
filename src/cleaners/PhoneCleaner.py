@@ -4,7 +4,7 @@ from typing import Literal
 import phonenumbers
 
 
-@dataclass
+@dataclass(frozen=True)
 class PhoneCleaner(ColCleaner):
     """
     A class to clean phone numbers in a DataFrame column.

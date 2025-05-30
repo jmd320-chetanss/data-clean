@@ -22,14 +22,20 @@ class StringCleaner(ColCleaner):
 
     def __post_init__(self):
 
-        assert self.min_length >= 0, \
-            "Minimum length must be non-negative."
+        assert self.min_length >= 0, "Minimum length must be non-negative."
 
-        assert self.max_length >= self.min_length, \
-            "Maximum length must be greater than or equal to minimum length."
+        assert (
+            self.max_length >= self.min_length
+        ), "Maximum length must be greater than or equal to minimum length."
 
-        assert self.case in (None, "lower", "upper", "snake", "camel", "pascal"), \
-            "Case must be one of 'lower', 'upper', 'snake', 'camel', 'pascal' or None."
+        assert self.case in (
+            None,
+            "lower",
+            "upper",
+            "snake",
+            "camel",
+            "pascal",
+        ), "Case must be one of 'lower', 'upper', 'snake', 'camel', 'pascal' or None."
 
         assert isinstance(self.trim, bool), "Trim must be a boolean value."
 

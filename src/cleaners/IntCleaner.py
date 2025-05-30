@@ -18,11 +18,13 @@ class IntCleaner(ColCleaner):
 
     def __post_init__(self):
 
-        assert self.min_value is None or isinstance(self.min_value, int), \
-            f"min_value must be an int or None, got {type(self.min_value)}"
+        assert self.min_value is None or isinstance(
+            self.min_value, int
+        ), f"min_value must be an int or None, got {type(self.min_value)}"
 
-        assert self.max_value is None or isinstance(self.max_value, int), \
-            f"max_value must be an int or None, got {type(self.max_value)}"
+        assert self.max_value is None or isinstance(
+            self.max_value, int
+        ), f"max_value must be an int or None, got {type(self.max_value)}"
 
         object.__setattr__(self, "datatype", "bigint")
 

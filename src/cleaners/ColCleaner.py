@@ -38,14 +38,13 @@ class ColCleaner(ABC):
     datatype: str = "string"
 
     def __post_init__(self):
-        assert callable(self.preprocess), \
-            "Preprocess must be a callable function."
+        assert callable(self.preprocess), "Preprocess must be a callable function."
 
-        assert isinstance(self.rename_to, (str, type(None))), \
-            "Rename_to must be a string or None."
+        assert isinstance(
+            self.rename_to, (str, type(None))
+        ), "Rename_to must be a string or None."
 
-        assert isinstance(self.datatype, str), \
-            "Datatype must be a string."
+        assert isinstance(self.datatype, str), "Datatype must be a string."
 
     def clean_col(self, col: Column) -> Column:
         """
@@ -72,7 +71,8 @@ class ColCleaner(ABC):
             except Exception as e:
                 if self.onerror == "raise":
                     raise RuntimeError(
-                        f"Error cleaning value '{preprocessed_value}' in column '{col}', error: {e}")
+                        f"Error cleaning value '{preprocessed_value}' in column '{col}', error: {e}"
+                    )
 
                 elif self.onerror == "none":
                     cleaned_value = None

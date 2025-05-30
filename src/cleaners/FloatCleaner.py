@@ -14,11 +14,9 @@ class FloatCleaner(ColCleaner):
 
     def __post_init__(self):
 
-        assert self.precision >= 0, \
-            "Precision must be a non-negative integer"
+        assert self.precision >= 0, "Precision must be a non-negative integer"
 
-        assert self.precision <= 38, \
-            "Precision must be less than or equal to 38"
+        assert self.precision <= 38, "Precision must be less than or equal to 38"
 
         object.__setattr__
         self.datatype = f"decimal(38, {self.precision})"
