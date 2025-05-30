@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from .. import math_utils
-from typing import override
 from .ColCleaner import ColCleaner
 
 
@@ -24,7 +23,6 @@ class FloatCleaner(ColCleaner):
         object.__setattr__
         self.datatype = f"decimal(38, {self.precision})"
 
-    @override
     def clean_value(self, value: str | None):
 
         parsed_value = math_utils.parse_float(value)

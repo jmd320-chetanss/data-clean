@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from dateutil import parser
-from typing import Literal, override, ClassVar
+from typing import Literal, ClassVar
 from .ColCleaner import ColCleaner
 
 
@@ -57,7 +57,6 @@ class DatetimeCleaner(ColCleaner):
         object.__setattr__(self, "_format", _format)
         object.__setattr__(self, "datatype", "timestamp")
 
-    @override
     def clean_value(self, value: str | None) -> str | None:
 
         try:

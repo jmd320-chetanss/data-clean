@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Literal, override
+from typing import Literal
 from .. import string_utils
 from .ColCleaner import ColCleaner
 
@@ -40,7 +40,6 @@ class StringCleaner(ColCleaner):
 
         object.__setattr__(self, "_case_updater", case_updater)
 
-    @override
     def clean_value(self, value: str | None) -> str | None:
 
         if self.trim:

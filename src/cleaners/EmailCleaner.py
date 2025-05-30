@@ -1,7 +1,6 @@
 import re
 import itertools
 from dataclasses import dataclass, field
-from typing import override
 from .ColCleaner import ColCleaner
 
 
@@ -24,7 +23,6 @@ class EmailCleaner(ColCleaner):
         assert self.max_parse_count > 0, \
             "max_parse_count must be greater than 0"
 
-    @override
     def clean_value(self, value: str | None) -> str | None:
 
         matches = itertools.islice(

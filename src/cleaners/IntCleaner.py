@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, override
+from typing import Optional
 from .. import math_utils
 from .ColCleaner import ColCleaner
 
@@ -26,7 +26,6 @@ class IntCleaner(ColCleaner):
 
         object.__setattr__(self, "datatype", "bigint")
 
-    @override
     def clean_value(self, value: str) -> str | None:
 
         parsed_value = math_utils.parse_int(value)

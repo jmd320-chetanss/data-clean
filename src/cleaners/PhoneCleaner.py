@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from .ColCleaner import ColCleaner
-from typing import Literal, override
+from typing import Literal
 import phonenumbers
 
 
@@ -67,7 +67,6 @@ class PhoneCleaner(ColCleaner):
 
         object.__setattr__(self, "_pn_format", pn_format)
 
-    @override
     def clean_value(self, value: str | None) -> str | None:
 
         numobj: phonenumbers.PhoneNumber = None

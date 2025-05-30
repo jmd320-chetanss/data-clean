@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import ClassVar, override
+from typing import ClassVar
 from .ColCleaner import ColCleaner
 
 
@@ -81,7 +81,6 @@ class BoolCleaner(ColCleaner):
         object.__setattr__(self, "_false_cases", set(false_cases))
         object.__setattr__(self, "datatype", "boolean")
 
-    @override
     def clean_value(self, value: str | None) -> str | None:
 
         value_clean = value.lower().strip()

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, override
+from typing import Literal
 from .ColCleaner import ColCleaner
 
 
@@ -20,7 +20,6 @@ class GenderCleaner(ColCleaner):
         assert isinstance(self.lower, bool), \
             f"Lower must be a boolean, not {type(self.lower)}."
 
-    @override
     def clean_value(self, value: str | None) -> str | None:
 
         value_clean = value.lower().strip()
