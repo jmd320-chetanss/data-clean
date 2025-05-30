@@ -1,5 +1,6 @@
-from dataclasses import dataclass
-from .StringCleaner import StringCleaner
+from dataclasses import dataclass, field
+from typing import override
+from .ColCleaner import ColCleaner
 
 
 @dataclass(frozen=True)
