@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from .ColCleaner import ColCleaner
-from typing import Literal
+from typing import Literal, override
 import phonenumbers
 
 
@@ -48,7 +48,10 @@ class PhoneCleaner(ColCleaner):
         ]
     )
 
+    _pn_format: phonenumbers.PhoneNumberFormat = field(init=False, repr=False)
+
     def __post_init__(self):
+
         assert self.fmt in [
             "E164",
             "INTERNATIONAL",
@@ -60,37 +63,35 @@ class PhoneCleaner(ColCleaner):
             isinstance(region, str) for region in self.regions
         ), "Regions must be a list of strings."
 
-    def _get_cleaner(self) -> callable:
-
         pn_format = self._convert_format(self.fmt)
 
-        def _cleaner(value: str | None) -> str | None:
-            value = self.preprocess(value)
+        object.__setattr__(self, "_pn_format", pn_format)
 
-            if value is None:
-                return None
+    @override
+    def clean_value(self, value: str | None) -> str | None:
 
-            numobj: phonenumbers.PhoneNumber = None
+        if value is None:
+            return None
 
-            # Parsing phonenumber using every regions
-            for region in self.regions:
-                matcher = phonenumbers.PhoneNumberMatcher(
-                    value, region=region, leniency=phonenumbers.Leniency.POSSIBLE
-                )
+        numobj: phonenumbers.PhoneNumber = None
 
-                if not matcher.has_next():
-                    continue
+        # Parsing phonenumber using every regions
+        for region in self.regions:
+            matcher = phonenumbers.PhoneNumberMatcher(
+                value, region=region, leniency=phonenumbers.Leniency.POSSIBLE
+            )
 
-                numobj = matcher.next().number
-                break
+            if not matcher.has_next():
+                continue
 
-            if numobj is None:
-                return None
+            numobj = matcher.next().number
+            break
 
-            result = phonenumbers.format_number(numobj, num_format=pn_format)
-            return result
+        if numobj is None:
+            return None
 
-        return _cleaner
+        result = phonenumbers.format_number(numobj, num_format=self._pn_format)
+        return result
 
     def _convert_format(self, format: str) -> phonenumbers.PhoneNumberFormat:
         """

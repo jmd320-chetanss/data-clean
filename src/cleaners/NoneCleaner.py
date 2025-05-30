@@ -1,8 +1,11 @@
 from dataclasses import dataclass
 from .ColCleaner import ColCleaner
+from typing import override
 
 
-@dataclass
+@dataclass(frozen=True)
 class NoneCleaner(ColCleaner):
-    def _get_cleaner(self):
-        return lambda value: value
+
+    @override
+    def clean_value(self, value: str | None) -> str | None:
+        return value

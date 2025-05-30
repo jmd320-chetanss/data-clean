@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from .ColCleaner import ColCleaner
-from typing import Optional
+from typing import Optional, override
 from .. import math_utils
+from .ColCleaner import ColCleaner
 
 
-@dataclass
+@dataclass(frozen=True)
 class IntCleaner(ColCleaner):
     """
     Class to clean integer columns in a DataFrame.
@@ -17,34 +17,34 @@ class IntCleaner(ColCleaner):
     max_value: Optional[int] = 9223372036854775807
 
     def __post_init__(self):
-        self.datatype = "bigint"
 
-    def _get_cleaner(self) -> callable:
-        """
-        Clean the integer value by removing non-numeric characters and converting to int.
-        """
+        assert self.min_value is None or isinstance(self.min_value, int), \
+            f"min_value must be an int or None, got {type(self.min_value)}"
 
-        def cleaner(value: str | None):
-            value = self.preprocess(value)
+        assert self.max_value is None or isinstance(self.max_value, int), \
+            f"max_value must be an int or None, got {type(self.max_value)}"
 
-            if value is None:
-                return None
+        object.__setattr__(self, "datatype", "bigint")
 
-            parsed_value = math_utils.parse_int(value)
+    @override
+    def clean_value(self, value: str | None) -> str | None:
 
-            if parsed_value is None:
-                raise ValueError(f"Cannot parse '{value}' as integer.")
+        if value is None:
+            return None
 
-            if self.min_value is not None and parsed_value < self.min_value:
-                raise ValueError(
-                    f"Value '{value}' parsed as '{parsed_value}' is less than the specified '{self.min_value}' value."
-                )
+        parsed_value = math_utils.parse_int(value)
 
-            if self.max_value is not None and parsed_value > self.max_value:
-                raise ValueError(
-                    f"Value '{value}' parsed as '{parsed_value}' is greater than the specified '{self.max_value}' value."
-                )
+        if parsed_value is None:
+            raise ValueError(f"Cannot parse '{value}' as integer.")
 
-            return parsed_value
+        if self.min_value is not None and parsed_value < self.min_value:
+            raise ValueError(
+                f"Value '{value}' parsed as '{parsed_value}' is less than the specified '{self.min_value}' value."
+            )
 
-        return cleaner
+        if self.max_value is not None and parsed_value > self.max_value:
+            raise ValueError(
+                f"Value '{value}' parsed as '{parsed_value}' is greater than the specified '{self.max_value}' value."
+            )
+
+        return parsed_value

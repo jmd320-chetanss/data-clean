@@ -1,9 +1,9 @@
-from dataclasses    import dataclass
+from dataclasses import dataclass
+from typing import Literal, override
 from .ColCleaner import ColCleaner
-from typing import Literal
 
 
-@dataclass
+@dataclass(frozen=True)
 class GenderCleaner(ColCleaner):
 
     # Output format to represent gender
@@ -12,29 +12,33 @@ class GenderCleaner(ColCleaner):
     # Should the output format be in lowercase
     lower: bool = False
 
-    def _get_cleaner(self) -> callable:
+    def __post_init__(self):
 
-        def cleaner(value: str | None):
-            value = self.preprocess(value)
+        assert self.fmt in ["malefemale", "mf"], \
+            f"Invalid format '{self.fmt}'. Must be 'malefemale' or 'mf'."
 
-            if value is None:
-                return None
+        assert isinstance(self.lower, bool), \
+            f"Lower must be a boolean, not {type(self.lower)}."
 
-            value_clean = value.lower().strip()
-            ismale = value_clean in ["male", "m"]
-            isfemale = value_clean in ["female", "f"]
+    @override
+    def clean_value(self, value: str | None) -> str | None:
 
-            if not ismale and not isfemale:
-                raise ValueError(f"Cannot parse '{value}' as gender")
+        if value is None:
+            return None
 
-            if self.fmt == "malefemale":
-                result = "Male" if ismale else "Female"
-                return result.lower() if self.lower else result
+        value_clean = value.lower().strip()
+        ismale = value_clean in ["male", "m"]
+        isfemale = value_clean in ["female", "f"]
 
-            if self.fmt == "mf":
-                result = "M" if ismale else "F"
-                return result.lower() if self.lower else result
+        if not ismale and not isfemale:
+            raise ValueError(f"Cannot parse '{value}' as gender")
 
-            raise ValueError(f"Invalid output format '{self.fmt}'")
+        if self.fmt == "malefemale":
+            result = "Male" if ismale else "Female"
+            return result.lower() if self.lower else result
 
-        return cleaner
+        if self.fmt == "mf":
+            result = "M" if ismale else "F"
+            return result.lower() if self.lower else result
+
+        raise ValueError(f"Invalid output format '{self.fmt}'")

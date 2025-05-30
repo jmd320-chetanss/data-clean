@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from .ColCleaner import ColCleaner
-from datetime import date
 from dateutil import parser
+from typing import override
+from .ColCleaner import ColCleaner
 
 
-@dataclass
+@dataclass(frozen=True)
 class DatetimeCleaner(ColCleaner):
     """
     Class to clean datetime columns in a DataFrame.
@@ -17,30 +17,40 @@ class DatetimeCleaner(ColCleaner):
     format: str = "%Y-%m-%d %H:%M:%S"
 
     def __post_init__(self):
-        self.datatype = f"timestamp"
 
-    def _get_cleaner(self):
-        """
-        Clean the datetime value by converting to datetime.
-        """
+        assert isinstance(self.format, str), \
+            f"format must be a string, got {type(self.format)}"
 
-        parse_formats = self.parse_formats
-        if parse_formats is None:
-            pass
-        elif isinstance(parse_formats, str):
-            parse_formats = [parse_formats]
+        assert len(self.format) > 0, \
+            "format must not be empty"
 
-        def cleaner(value: str | None) -> str | None:
-            value = self.preprocess(value)
+        assert isinstance(self.parse_formats, (str, list)), \
+            f"parse_formats must be a string or a list of strings, got {type(self.parse_formats)}"
 
-            if value is None:
-                return None
+        assert len(self.parse_formats) > 0, \
+            "parse_formats must not be empty"
 
-            try:
-                parsed_value = parser.parse(value)
-            except (ValueError, TypeError):
-                raise ValueError(f"Cannot parse {type(value)} '{value}' as date")
+        assert all(isinstance(fmt, str) for fmt in self.parse_formats), \
+            f"All parse_formats must be strings, got {self.parse_formats}"
 
-            return parsed_value.strftime(self.format)
+        assert all(len(fmt) > 0 for fmt in self.parse_formats), \
+            f"All parse_formats must not be empty, got {self.parse_formats}"
 
-        return cleaner
+        _parse_formats = self.parse_formats if isinstance(
+            self.parse_formats, list) else [self.parse_formats]
+
+        object.__setattr__(self, "_parse_formats", _parse_formats)
+        object.__setattr__(self, "datatype", "timestamp")
+
+    @override
+    def clean_value(self, value: str | None) -> str | None:
+
+        if value is None:
+            return None
+
+        try:
+            parsed_value = parser.parse(value)
+        except (ValueError, TypeError):
+            raise ValueError(f"Cannot parse {type(value)} '{value}' as date")
+
+        return parsed_value.strftime(self.format)

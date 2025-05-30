@@ -1,36 +1,37 @@
-from dataclasses import dataclass
-from .ColCleaner import ColCleaner
 import re
 import itertools
+from dataclasses import dataclass, field
+from typing import override
+from .ColCleaner import ColCleaner
 
 
-@dataclass
+@dataclass(frozen=True)
 class EmailCleaner(ColCleaner):
 
     parse_count: int = 1
     value_separator: str = ", "
 
-    _email_pattern = re.compile(
-        r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+')
+    _email_pattern = field(
+        init=False,
+        default=re.compile(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'),
+    )
 
     def __post_init__(self):
-        assert self.value_separator is not None, "value_separator cannot be None"
-        assert self.parse_count > 0, "parse_count must be greater than 0"
 
-    def _get_cleaner(self) -> callable:
-        """
-        Returns a function that cleans email addresses by stripping whitespace and converting to lowercase.
-        """
+        assert self.value_separator is not None, \
+            "value_separator cannot be None"
 
-        def _cleaner(value: str | None) -> str | None:
-            value = self.preprocess(value)
+        assert self.parse_count > 0, \
+            "parse_count must be greater than 0"
 
-            if value is None:
-                return None
+    @override
+    def clean_value(self, value: str | None) -> str | None:
 
-            matches = itertools.islice(
-                self._email_pattern.finditer(value), self.parse_count)
-            results = [match.group(0).lower() for match in matches]
-            return self.value_separator.join(results)
+        if value is None:
+            return None
 
-        return _cleaner
+        matches = itertools.islice(
+            self._email_pattern.finditer(value), self.parse_count)
+        results = [match.group(0).lower() for match in matches]
+
+        return self.value_separator.join(results)

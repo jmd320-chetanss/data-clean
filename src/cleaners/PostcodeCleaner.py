@@ -2,6 +2,6 @@ from dataclasses import dataclass
 from .StringCleaner import StringCleaner
 
 
-@dataclass
+@dataclass(frozen=True)
 class PostcodeCleaner(StringCleaner):
     pass
