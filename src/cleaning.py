@@ -18,21 +18,11 @@ _empty_logger.addHandler(logging.NullHandler())
 class Result:
     value: DataFrame | ConnectDataFrame
     renamed_cols: dict[str, str]
-    key_cols: str
 
-    def __init__(
-        self,
-        value: DataFrame | ConnectDataFrame,
-        renamed_cols: dict[str, str],
-        key_cols: str,
-    ):
+    def __post_init__(self):
 
-        assert isinstance(value, (DataFrame, ConnectDataFrame))
-        assert isinstance(renamed_cols, dict)
-
-        self.value = value
-        self.renamed_cols = renamed_cols
-        self.key_cols = key_cols
+        assert isinstance(self.value, (DataFrame, ConnectDataFrame))
+        assert isinstance(self.renamed_cols, dict)
 
 
 def clean_table(
@@ -93,59 +83,6 @@ def clean_table(
             f"Dropping complete duplicates done, dropped {drop_count}.")
 
     # -----------------------------------------------------------------------------------------------------
-    # Checking for unique columns
-    # -----------------------------------------------------------------------------------------------------
-
-    logger.info("Checking for unique columns...")
-
-    unique_cols = [
-        col
-        for col, cleaner in schema.items()
-        if not isinstance(cleaner, DropCleaner) and cleaner.unique
-    ]
-
-    logger.debug(f"Checking in {unique_cols}.")
-
-    for col in unique_cols:
-        unique_count = df.select(col).distinct().count()
-        total_count = df.count()
-        if unique_count != total_count:
-            raise ValueError(
-                f"Column '{col}' is supposed to be unique but has duplicate values."
-            )
-
-    logger.success("Checking for unique columns done.")
-
-    # -----------------------------------------------------------------------------------------------------
-    # Checking for key columns
-    # -----------------------------------------------------------------------------------------------------
-
-    logger.info("Checking for key columns...")
-
-    key_cols = [
-        col
-        for col, cleaner in schema.items()
-        if not isinstance(cleaner, DropCleaner) and cleaner.key
-    ]
-
-    if key_cols:
-        duplicates_df = df.groupBy(
-            key_cols).count().filter(spf.col("count") > 1)
-        are_unique = duplicates_df.isEmpty()
-
-        if not are_unique:
-            if len(key_cols) > 1:
-                raise ValueError(
-                    f"Composite key columns {key_cols} have duplicate values."
-                )
-            else:
-                raise ValueError(
-                    f"Primary key column {key_cols} have duplicate values."
-                )
-
-    logger.success("Checking for key columns done.")
-
-    # -----------------------------------------------------------------------------------------------------
     # Renaming columns
     # -----------------------------------------------------------------------------------------------------
 
@@ -174,11 +111,7 @@ def clean_table(
 
     logger.success(f"Renaming columns done.")
 
-    # The new names of the key columns after they are renamed
-    renamed_key_cols = [rename_mapping.get(col, col) for col in key_cols]
-
     return Result(
         value=df,
         renamed_cols=rename_mapping,
-        key_cols=renamed_key_cols,
     )
