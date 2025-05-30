@@ -27,7 +27,7 @@ class Result:
 
 def clean_table(
     df: DataFrame | ConnectDataFrame,
-    schema: dict[str, ColCleaner],
+    cleaners: dict[str, ColCleaner],
     drop_complete_duplicates: bool = False,
     logger: logging.Logger = _empty_logger,
 ) -> Result:
@@ -45,7 +45,7 @@ def clean_table(
     for col in df.columns:
         df = df.withColumn(col, spf.col(col).cast("string"))
 
-    default_cleaner = schema.get("*", AutoCleaner())
+    default_cleaner = cleaners.get("*", AutoCleaner())
 
     # -----------------------------------------------------------------------------------------------------
     # Cleaning columns
@@ -54,7 +54,7 @@ def clean_table(
     logger.info("Cleaning columns...")
 
     for col in df.columns:
-        cleaner: ColCleaner = schema.get(col, default_cleaner)
+        cleaner: ColCleaner = cleaners.get(col, default_cleaner)
         logger.debug(
             f"Cleaning col '{col}' with '{cleaner}' cleaner..."
         )
@@ -66,7 +66,7 @@ def clean_table(
 
         df = df.withColumn(col, cleaner.clean_col(col))
 
-    logger.success("Cleaning columns done.")
+    logger.info("Cleaning columns done.")
 
     # -----------------------------------------------------------------------------------------------------
     # Dropping complete duplicates
@@ -79,7 +79,7 @@ def clean_table(
         df = df.dropDuplicates()
         drop_count = before_drop_count - df.count()
 
-        logger.success(
+        logger.info(
             f"Dropping complete duplicates done, dropped {drop_count}.")
 
     # -----------------------------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ def clean_table(
     for col in df.columns:
 
         # Calculate new name for the column
-        cleaner = schema.get(col, default_cleaner)
+        cleaner = cleaners.get(col, default_cleaner)
         if cleaner is not None and cleaner.rename_to is not None:
             new_name = cleaner.rename_to
         else:
@@ -109,7 +109,7 @@ def clean_table(
 
     df = df.withColumnsRenamed(rename_mapping)
 
-    logger.success(f"Renaming columns done.")
+    logger.info(f"Renaming columns done.")
 
     return Result(
         value=df,

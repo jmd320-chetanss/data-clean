@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from dateutil import parser
+from datetime import datetime
 from typing import Literal, ClassVar
 from .ColCleaner import ColCleaner
 
@@ -15,10 +15,10 @@ class DatetimeCleaner(ColCleaner):
     DEFAULT_TIME_FORMAT: ClassVar[str] = "%H:%M:%S"
 
     # Parse formats of the datetime
-    parse_formats: str | list[str] = "%Y-%m-%d %H:%M:%S"
+    parse_formats: str | list[str] = [DEFAULT_DATETIME_FORMAT]
 
     # Format of the datetime
-    format: Literal["datetime", "date", "time"] | str = "%Y-%m-%d %H:%M:%S"
+    format: Literal["datetime", "date", "time"] | str = DEFAULT_DATETIME_FORMAT
 
     _parse_formats: list[str] = field(init=False, repr=False)
     _format: str = field(init=False, repr=False)
@@ -59,25 +59,33 @@ class DatetimeCleaner(ColCleaner):
 
     def clean_value(self, value: str | None) -> str | None:
 
-        try:
-            parsed_value = parser.parse(value)
-        except (ValueError, TypeError):
-            raise ValueError(f"Cannot parse {type(value)} '{value}' as date")
+        parsed_value = None
+        for format in self._parse_formats:
+            try:
+                parsed_value = datetime.strptime(value, format)
+                break
+            except ValueError:
+                continue
 
-        return parsed_value.strftime(self._format)
+        if parsed_value is None:
+            raise ValueError(
+                f"Cannot parse '{value}' with any of the formats: {self._parse_formats}"
+            )
+
+        return datetime.strftime(parsed_value, self._format)
 
     def _get_format(self, format: str) -> str:
         """
         Returns a predefined format based on the specified format type.
         """
 
-        if self.format == "datetime":
-            return [self.DEFAULT_DATETIME_FORMAT]
+        if format == "datetime":
+            return self.DEFAULT_DATETIME_FORMAT
 
-        if self.format == "date":
-            return [self.DEFAULT_DATE_FORMAT]
+        if format == "date":
+            return self.DEFAULT_DATE_FORMAT
 
-        if self.format == "time":
-            return [self.DEFAULT_TIME_FORMAT]
+        if format == "time":
+            return self.DEFAULT_TIME_FORMAT
 
-        return [self.format]
+        return self.format
