@@ -85,7 +85,9 @@ class PhoneCleaner(ColCleaner):
             break
 
         if numobj is None:
-            return None
+            raise ValueError(
+                f"Could not parse phone number from value: {value}. Tried regions: {self.regions}"
+            )
 
         result = phonenumbers.format_number(numobj, num_format=self._pn_format)
         return result

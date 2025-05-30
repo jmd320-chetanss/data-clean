@@ -8,7 +8,7 @@ from .ColCleaner import ColCleaner
 @dataclass(frozen=True)
 class EmailCleaner(ColCleaner):
 
-    parse_count: int = 1
+    max_parse_count: int = 1
     value_separator: str = ", "
 
     _email_pattern = field(
@@ -21,14 +21,17 @@ class EmailCleaner(ColCleaner):
         assert self.value_separator is not None, \
             "value_separator cannot be None"
 
-        assert self.parse_count > 0, \
-            "parse_count must be greater than 0"
+        assert self.max_parse_count > 0, \
+            "max_parse_count must be greater than 0"
 
     @override
     def clean_value(self, value: str | None) -> str | None:
 
         matches = itertools.islice(
-            self._email_pattern.finditer(value), self.parse_count)
+            self._email_pattern.finditer(value), self.max_parse_count)
         results = [match.group(0).lower() for match in matches]
+
+        if len(results) == 0:
+            raise ValueError(f"No valid email found in '{value}'")
 
         return self.value_separator.join(results)

@@ -1,6 +1,7 @@
 from dataclasses import dataclass, KW_ONLY
 from abc import ABC, abstractmethod
 from pyspark.sql import Column
+from typing import Literal
 import pyspark.sql.functions as spf
 
 
@@ -29,6 +30,9 @@ class ColCleaner(ABC):
 
     # Rename the column
     rename_to: str | None = None
+
+    # Error handling strategy for cleaning
+    onerror: Literal["raise", "value", "none"] = "raise"
 
     # The type of the column for the database table
     datatype: str = "string"
@@ -63,7 +67,21 @@ class ColCleaner(ABC):
             if preprocessed_value is None:
                 return None
 
-            return self.clean_value(preprocessed_value)
+            try:
+                cleaned_value = self.clean_value(preprocessed_value)
+            except Exception as e:
+                if self.onerror == "raise":
+                    raise RuntimeError(
+                        f"Error cleaning value '{preprocessed_value}' in column '{col}', error: {e}")
+
+                elif self.onerror == "none":
+                    cleaned_value = None
+                elif self.onerror == "value":
+                    cleaned_value = preprocessed_value
+                else:
+                    raise ValueError(f"Invalid onerror value: {self.onerror}")
+
+            return cleaned_value
 
         cleaner_udf = spf.udf(cleaner, "string")
         return cleaner_udf(col).cast(self.datatype)
