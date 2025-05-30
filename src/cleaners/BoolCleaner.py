@@ -84,9 +84,6 @@ class BoolCleaner(ColCleaner):
     @override
     def clean_value(self, value: str | None) -> str | None:
 
-        if value is None:
-            return None
-
         value_clean = value.lower().strip()
         istrue = value_clean in self._true_cases
         isfalse = value_clean in self._false_cases

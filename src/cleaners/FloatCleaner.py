@@ -27,9 +27,6 @@ class FloatCleaner(ColCleaner):
     @override
     def clean_value(self, value: str | None):
 
-        if value is None:
-            return None
-
         parsed_value = math_utils.parse_float(value)
         if parsed_value is None:
             raise ValueError(f"Cannot parse '{value}' as decimal")

@@ -27,9 +27,6 @@ class EmailCleaner(ColCleaner):
     @override
     def clean_value(self, value: str | None) -> str | None:
 
-        if value is None:
-            return None
-
         matches = itertools.islice(
             self._email_pattern.finditer(value), self.parse_count)
         results = [match.group(0).lower() for match in matches]

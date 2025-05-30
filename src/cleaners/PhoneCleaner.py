@@ -70,9 +70,6 @@ class PhoneCleaner(ColCleaner):
     @override
     def clean_value(self, value: str | None) -> str | None:
 
-        if value is None:
-            return None
-
         numobj: phonenumbers.PhoneNumber = None
 
         # Parsing phonenumber using every regions

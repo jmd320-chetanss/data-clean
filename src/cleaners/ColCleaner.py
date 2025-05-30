@@ -50,7 +50,21 @@ class ColCleaner(ABC):
         :param col: The column to clean.
         :return: The cleaned column.
         """
-        cleaner = self._get_cleaner()
+
+        def cleaner(value: str | None) -> str | None:
+            """
+            Cleaner function that applies the preprocessing and cleaning logic.
+
+            :param value: The value to clean.
+            :return: The cleaned value.
+            """
+            preprocessed_value = self.preprocess(value)
+
+            if preprocessed_value is None:
+                return None
+
+            return self.clean_value(preprocessed_value)
+
         cleaner_udf = spf.udf(cleaner, "string")
         return cleaner_udf(col).cast(self.datatype)
 

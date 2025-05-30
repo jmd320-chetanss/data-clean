@@ -60,9 +60,6 @@ class DatetimeCleaner(ColCleaner):
     @override
     def clean_value(self, value: str | None) -> str | None:
 
-        if value is None:
-            return None
-
         try:
             parsed_value = parser.parse(value)
         except (ValueError, TypeError):

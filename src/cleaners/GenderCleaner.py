@@ -23,9 +23,6 @@ class GenderCleaner(ColCleaner):
     @override
     def clean_value(self, value: str | None) -> str | None:
 
-        if value is None:
-            return None
-
         value_clean = value.lower().strip()
         ismale = value_clean in ["male", "m"]
         isfemale = value_clean in ["female", "f"]

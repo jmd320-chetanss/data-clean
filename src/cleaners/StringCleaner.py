@@ -43,9 +43,6 @@ class StringCleaner(ColCleaner):
     @override
     def clean_value(self, value: str | None) -> str | None:
 
-        if value is None:
-            return None
-
         if self.trim:
             value = value.strip()
 

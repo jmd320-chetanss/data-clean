@@ -27,10 +27,7 @@ class IntCleaner(ColCleaner):
         object.__setattr__(self, "datatype", "bigint")
 
     @override
-    def clean_value(self, value: str | None) -> str | None:
-
-        if value is None:
-            return None
+    def clean_value(self, value: str) -> str | None:
 
         parsed_value = math_utils.parse_int(value)
 
