@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal, ClassVar
 from .ColCleaner import ColCleaner
+from dataclean.src import utils
 
 
 @dataclass(frozen=True)
@@ -10,15 +11,17 @@ class DatetimeCleaner(ColCleaner):
     Class to clean datetime columns in a DataFrame.
     """
 
-    DEFAULT_DATETIME_FORMAT: ClassVar[str] = "%Y-%m-%d %H:%M:%S"
-    DEFAULT_DATE_FORMAT: ClassVar[str] = "%Y-%m-%d"
-    DEFAULT_TIME_FORMAT: ClassVar[str] = "%H:%M:%S"
+    DATETIME_FORMAT: ClassVar[str] = "%Y-%m-%d %H:%M:%S"
+    DATE_FORMAT: ClassVar[str] = "%Y-%m-%d"
+    TIME_FORMAT: ClassVar[str] = "%H:%M:%S"
 
     # Parse formats of the datetime
-    parse_formats: str | list[str] = [DEFAULT_DATETIME_FORMAT]
+    parse_formats: list[str | Literal["datetime", "date", "time"]] = field(
+        default_factory=lambda: ["datetime", "date"]
+    )
 
     # Format of the datetime
-    format: Literal["datetime", "date", "time"] | str = DEFAULT_DATETIME_FORMAT
+    format: str | Literal["datetime", "date", "time"] = "datetime"
 
     _parse_formats: list[str] = field(init=False, repr=False)
     _format: str = field(init=False, repr=False)
@@ -45,16 +48,14 @@ class DatetimeCleaner(ColCleaner):
             len(fmt) > 0 for fmt in self.parse_formats
         ), f"All parse_formats must not be empty, got {self.parse_formats}"
 
-        _parse_formats = (
-            self.parse_formats
-            if isinstance(self.parse_formats, list)
-            else [self.parse_formats]
-        )
+        # Clean parse formats
+        parse_formats = [self._get_format(fmt) for fmt in self.parse_formats]
+        parse_formats = utils.remove_duplicates(parse_formats)
 
-        _format = self._get_format(self.format)
+        format = self._get_format(self.format)
 
-        object.__setattr__(self, "_parse_formats", _parse_formats)
-        object.__setattr__(self, "_format", _format)
+        object.__setattr__(self, "_parse_formats", parse_formats)
+        object.__setattr__(self, "_format", format)
         object.__setattr__(self, "datatype", "timestamp")
 
     def clean_value(self, value: str | None) -> str | None:
@@ -80,12 +81,12 @@ class DatetimeCleaner(ColCleaner):
         """
 
         if format == "datetime":
-            return self.DEFAULT_DATETIME_FORMAT
+            return self.DATETIME_FORMAT
 
         if format == "date":
-            return self.DEFAULT_DATE_FORMAT
+            return self.DATE_FORMAT
 
         if format == "time":
-            return self.DEFAULT_TIME_FORMAT
+            return self.TIME_FORMAT
 
-        return self.format
+        return format
