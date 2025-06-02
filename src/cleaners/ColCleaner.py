@@ -1,25 +1,9 @@
 from dataclasses import dataclass, KW_ONLY
 from abc import ABC, abstractmethod
 from pyspark.sql import Column
-from typing import Literal, staticmethod
+from typing import Literal
 import pyspark.sql.functions as spf
-
-
-def default_preprocessor(value: str | None) -> str | None:
-    """
-    Default preprocessor function to handle None values.
-
-    :param value: The value to preprocess.
-    :return: The preprocessed value.
-    """
-    if value is None:
-        return None
-
-    value = value.strip()
-    if value == "":
-        return None
-
-    return value
+from dataclean.src.preprocessors import default_preprocessor
 
 
 @dataclass(frozen=True)
