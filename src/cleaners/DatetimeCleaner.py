@@ -11,17 +11,21 @@ class DatetimeCleaner(ColCleaner):
     Class to clean datetime columns in a DataFrame.
     """
 
+    DATETIMEMS_FORMAT: ClassVar[str] = "%Y-%m-%d %H:%M:%S.%f"
     DATETIME_FORMAT: ClassVar[str] = "%Y-%m-%d %H:%M:%S"
     DATE_FORMAT: ClassVar[str] = "%Y-%m-%d"
+    TIMEMS_FORMAT: ClassVar[str] = "%H:%M:%S.%f"
     TIME_FORMAT: ClassVar[str] = "%H:%M:%S"
 
+    Formats = Literal["datetimems", "datetime", "date", "timems", "time"]
+
     # Parse formats of the datetime
-    parse_formats: list[str | Literal["datetime", "date", "time"]] = field(
-        default_factory=lambda: ["datetime", "date"]
+    parse_formats: list[str | Formats] = field(
+        default_factory=lambda: ["datetimems", "datetime", "date"]
     )
 
     # Format of the datetime
-    format: str | Literal["datetime", "date", "time"] = "datetime"
+    format: str | Formats = "datetime"
 
     _parse_formats: list[str] = field(init=False, repr=False)
     _format: str = field(init=False, repr=False)
@@ -80,13 +84,20 @@ class DatetimeCleaner(ColCleaner):
         Returns a predefined format based on the specified format type.
         """
 
-        if format == "datetime":
-            return self.DATETIME_FORMAT
+        match format:
+            case "datetimems":
+                return self.DATETIMEMS_FORMAT
 
-        if format == "date":
-            return self.DATE_FORMAT
+            case "datetime":
+                return self.DATETIME_FORMAT
 
-        if format == "time":
-            return self.TIME_FORMAT
+            case "date":
+                return self.DATE_FORMAT
+
+            case "timems":
+                return self.TIMEMS_FORMAT
+
+            case "time":
+                return self.TIME_FORMAT
 
         return format
