@@ -1,4 +1,4 @@
-from dataclasses import dataclass, KW_ONLY
+from dataclasses import dataclass, field, KW_ONLY
 from abc import ABC, abstractmethod
 from pyspark.sql import Column
 from typing import Literal
@@ -11,10 +11,12 @@ class ColCleaner(ABC):
     _: KW_ONLY
 
     # Preprocessor function to apply before cleaning
-    preprocessor: callable | None = default_preprocessor
+    preprocessors: list[callable] = field(
+        default_factory=lambda: [default_preprocessor]
+    )
 
     # Postprocessor function to apply after cleaning
-    postprocessor: callable | None = None
+    postprocessors: list[callable] = field(default_factory=list)
 
     # Rename the column
     rename_to: str | None = None
@@ -26,13 +28,17 @@ class ColCleaner(ABC):
     datatype: str = "string"
 
     def __post_init__(self):
-        assert self.preprocessor is None or callable(
-            self.preprocessor
-        ), "Preprocess must be a callable function or None."
+        assert isinstance(self.preprocessors, list), "Preprocessors must be a list."
 
-        assert self.postprocessor is None or callable(
-            self.postprocessor
-        ), "Postprocess must be a callable function or None."
+        assert isinstance(self.postprocessors, list), "Postprocessors must be a list."
+
+        assert all(
+            callable(preprocessor) for preprocessor in self.preprocessors
+        ), "All preprocessors must be callable."
+
+        assert all(
+            callable(postprocessor) for postprocessor in self.postprocessors
+        ), "All postprocessors must be callable."
 
         assert isinstance(
             self.rename_to, (str, type(None))
@@ -55,9 +61,10 @@ class ColCleaner(ABC):
             :param value: The value to clean.
             :return: The cleaned value.
             """
-            preprocessed_value = (
-                self.preprocessor(value) if self.preprocessor is not None else value
-            )
+            preprocessed_value = value
+
+            for preprocessor in self.preprocessors:
+                preprocessed_value = preprocessor(preprocessed_value)
 
             if preprocessed_value is None:
                 return None
@@ -77,13 +84,12 @@ class ColCleaner(ABC):
                 else:
                     raise ValueError(f"Invalid onerror value: {self.onerror}")
 
-            posprocessed_value = (
-                self.postprocessor(cleaned_value)
-                if self.postprocessor is not None
-                else cleaned_value
-            )
+            postprocessed_value = cleaned_value
 
-            return posprocessed_value
+            for postprocessor in self.postprocessors:
+                postprocessed_value = postprocessor(postprocessed_value)
+
+            return postprocessed_value
 
         cleaner_udf = spf.udf(cleaner, "string")
         return cleaner_udf(col).cast(self.datatype)
