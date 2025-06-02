@@ -14,14 +14,15 @@ class DatetimeCleaner(ColCleaner):
     DATETIMEMS_FORMAT: ClassVar[str] = "%Y-%m-%d %H:%M:%S.%f"
     DATETIME_FORMAT: ClassVar[str] = "%Y-%m-%d %H:%M:%S"
     DATE_FORMAT: ClassVar[str] = "%Y-%m-%d"
+    DATE_DMY_FORMAT: ClassVar[str] = "%d/%m/%Y"
     TIMEMS_FORMAT: ClassVar[str] = "%H:%M:%S.%f"
     TIME_FORMAT: ClassVar[str] = "%H:%M:%S"
 
-    Formats = Literal["datetimems", "datetime", "date", "timems", "time"]
+    Formats = Literal["datetimems", "datetime", "date", "date_dmy", "timems", "time"]
 
     # Parse formats of the datetime
     parse_formats: list[str | Formats] = field(
-        default_factory=lambda: ["datetimems", "datetime", "date"]
+        default_factory=lambda: ["datetimems", "datetime", "date", "date_dmy"]
     )
 
     # Format of the datetime
@@ -93,6 +94,9 @@ class DatetimeCleaner(ColCleaner):
 
             case "date":
                 return self.DATE_FORMAT
+
+            case "date_dmy":
+                return self.DATE_DMY_FORMAT
 
             case "timems":
                 return self.TIMEMS_FORMAT
