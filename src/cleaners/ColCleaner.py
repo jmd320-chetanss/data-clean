@@ -1,9 +1,13 @@
 from dataclasses import dataclass, field, KW_ONLY
 from abc import ABC, abstractmethod
 from pyspark.sql import Column
-from typing import Literal
 import pyspark.sql.functions as spf
 from dataclean.src.preprocessors import default_preprocessor
+from dataclean.src.error_handlers import (
+    ErrorHandler,
+    ErrorContext,
+    error_handler_default,
+)
 
 
 @dataclass(frozen=True)
@@ -22,7 +26,7 @@ class ColCleaner(ABC):
     rename_to: str | None = None
 
     # Error handling strategy for cleaning
-    onerror: Literal["raise", "value", "none"] = "raise"
+    error_handler: ErrorHandler = field(default=error_handler_default)
 
     # The type of the column for the database table
     datatype: str = "string"
@@ -46,7 +50,7 @@ class ColCleaner(ABC):
 
         assert isinstance(self.datatype, str), "Datatype must be a string."
 
-    def clean_col(self, col: Column) -> Column:
+    def clean_col(self, col: str) -> Column:
         """
         Clean the column using the cleaner function.
 
@@ -61,33 +65,68 @@ class ColCleaner(ABC):
             :param value: The value to clean.
             :return: The cleaned value.
             """
+
+            # --------------------------------------------------------------------------------------
+            # Preprocessing stage
+            # --------------------------------------------------------------------------------------
+
             preprocessed_value = value
 
-            for preprocessor in self.preprocessors:
-                preprocessed_value = preprocessor(preprocessed_value)
+            if len(self.preprocessors) > 0:
+                try:
+                    for preprocessor in self.preprocessors:
+                        preprocessed_value = preprocessor(preprocessed_value)
+
+                except Exception as ex:
+                    error_context = ErrorContext(
+                        col=col,
+                        stage="preprocessing",
+                        value=value,
+                        error=ex,
+                    )
+
+                    preprocessed_value = self.error_handler(error_context)
 
             if preprocessed_value is None:
                 return None
 
+            # --------------------------------------------------------------------------------------
+            # Cleaning stage
+            # --------------------------------------------------------------------------------------
+
             try:
                 cleaned_value = self.clean_value(preprocessed_value)
-            except Exception as e:
-                if self.onerror == "raise":
-                    raise RuntimeError(
-                        f"Error cleaning value '{preprocessed_value}' in column '{col}', error: {e}"
-                    )
 
-                elif self.onerror == "none":
-                    cleaned_value = None
-                elif self.onerror == "value":
-                    cleaned_value = preprocessed_value
-                else:
-                    raise ValueError(f"Invalid onerror value: {self.onerror}")
+            except Exception as ex:
+                error_context = ErrorContext(
+                    col=col,
+                    stage="cleaning",
+                    value=preprocessed_value,
+                    error=ex,
+                )
+
+                cleaned_value = self.error_handler(error_context)
+
+            # --------------------------------------------------------------------------------------
+            # Postprocessing stage
+            # --------------------------------------------------------------------------------------
 
             postprocessed_value = cleaned_value
 
-            for postprocessor in self.postprocessors:
-                postprocessed_value = postprocessor(postprocessed_value)
+            if len(self.postprocessors) > 0:
+                try:
+                    for postprocessor in self.postprocessors:
+                        postprocessed_value = postprocessor(postprocessed_value)
+
+                except Exception as ex:
+                    error_context = ErrorContext(
+                        col=col,
+                        stage="postprocessing",
+                        value=cleaned_value,
+                        error=ex,
+                    )
+
+                    postprocessed_value = self.error_handler(error_context)
 
             return postprocessed_value
 
