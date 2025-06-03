@@ -31,15 +31,6 @@ def clean_table(
     drop_complete_duplicates: bool = False,
     logger: logging.Logger = _empty_logger,
 ) -> Result:
-    """
-    Handles the following tasks:
-    - Trims all string columns
-    - Handles decimal precision
-    - Handles currency precision
-    - Handles date fmt
-    - Handles datetime fmt
-    - Consistent column names
-    """
 
     # Convert every column to string
     for col in df.columns:
@@ -53,11 +44,22 @@ def clean_table(
 
     logger.info("Cleaning columns...")
 
-    for col in df.columns:
+    columns = list(cleaners.keys())
+    columns += [col for col in df.columns if col not in columns]
+
+    for col in columns:
+
         cleaner: ColCleaner = cleaners.get(col, default_cleaner)
-        logger.debug(
-            f"Cleaning col '{col}' with '{cleaner}' cleaner..."
-        )
+
+        if col not in df.columns:
+
+            if cleaner.if_exists is True:
+                logger.info(f"Column '{col}' not found in DataFrame, skipping...")
+                continue
+
+            raise KeyError(f"Column '{col}' not found in DataFrame, cannot clean.")
+
+        logger.debug(f"Cleaning col '{col}' with '{cleaner}' cleaner...")
 
         if isinstance(cleaner, DropCleaner):
             logger.info(f"Dropping column '{col}'...")
@@ -79,8 +81,7 @@ def clean_table(
         df = df.dropDuplicates()
         drop_count = before_drop_count - df.count()
 
-        logger.info(
-            f"Dropping complete duplicates done, dropped {drop_count}.")
+        logger.info(f"Dropping complete duplicates done, dropped {drop_count}.")
 
     # -----------------------------------------------------------------------------------------------------
     # Renaming columns

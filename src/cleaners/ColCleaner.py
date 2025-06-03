@@ -31,6 +31,9 @@ class ColCleaner(ABC):
     # The type of the column for the database table
     datatype: str = "string"
 
+    # Ignore if the column doesn't exists in the DataFrame
+    if_exists: bool = False
+
     def __post_init__(self):
         assert isinstance(self.preprocessors, list), "Preprocessors must be a list."
 
@@ -49,6 +52,12 @@ class ColCleaner(ABC):
         ), "Rename_to must be a string or None."
 
         assert isinstance(self.datatype, str), "Datatype must be a string."
+
+        assert isinstance(
+            self.error_handler, ErrorHandler
+        ), "Error handler must be an instance of ErrorHandler."
+
+        assert isinstance(self.if_exists, bool), "If_exists must be a boolean."
 
     def clean_col(self, col: str) -> Column:
         """

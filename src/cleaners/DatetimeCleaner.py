@@ -83,7 +83,7 @@ class DatetimeCleaner(ColCleaner):
 
         return datetime.strftime(parsed_value, self._format)
 
-    def _get_format(self, format: str) -> str:
+    def _get_format(self, format: str | Formats) -> str:
         """
         Returns a predefined format based on the specified format type.
         """
