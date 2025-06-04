@@ -22,6 +22,7 @@ def default_preprocessor(value: str | None) -> str | None:
     :param value: The value to preprocess.
     :return: The preprocessed value.
     """
+
     if value is None:
         return None
 
@@ -36,10 +37,15 @@ def decrypt_preprocessor(encryptor: Encryptor) -> callable:
 
     def preprocessor(value: str | None) -> str | None:
 
-        if value is not None:
-            value = encryptor.decrypt(value.encode()).decode()
+        if value is None:
+            return None
 
-        return value
+        value_bytes = encryptor.decrypt(value.encode())
+
+        if value_bytes is None:
+            raise ValueError(f"Failed to decrypt value '{value}'.")
+
+        return value_bytes.decode()
 
     return preprocessor
 
@@ -48,9 +54,14 @@ def encrypt_postprocessor(encryptor: Encryptor) -> callable:
 
     def postprocessor(value: str | None) -> str | None:
 
-        if value is not None:
-            value = encryptor.encrypt(value.encode()).decode()
+        if value is None:
+            return None
 
-        return value
+        value_bytes = encryptor.encrypt(value.encode())
+
+        if value_bytes is None:
+            raise ValueError(f"Failed to encrypt value '{value}'.")
+
+        return value_bytes.decode()
 
     return postprocessor

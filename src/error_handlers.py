@@ -25,7 +25,7 @@ ErrorHandler = Callable[[ErrorContext], str | None]
 
 def error_handler_raise(ctx: ErrorContext) -> str | None:
     raise RuntimeError(
-        f"Error cleaning value '{ctx.value}' in column '{ctx.col}', error: {ctx.error}"
+        f"Error cleaning value '{ctx.value}' in column '{ctx.col}' at stage '{ctx.stage}', error: {ctx.error}"
     )
 
 
